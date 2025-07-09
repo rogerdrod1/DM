@@ -6,9 +6,27 @@ export class UserManager {
     this.storageKeys = {
       currentUser: 'dmads_current_user',
       userList: 'dmads_user_list',
-      userProfiles: 'dmads_user_profiles'
+      userProfiles: 'dmads_user_profiles',
+      masterUserList: 'dmads_master_users' // Persistent across deployments
     };
     this.currentUser = this.getCurrentUser();
+    this.initializeMasterUserList();
+  }
+
+  // Initialize master user list for persistence across deployments
+  initializeMasterUserList() {
+    const masterUsers = localStorage.getItem(this.storageKeys.masterUserList);
+    if (!masterUsers) {
+      localStorage.setItem(this.storageKeys.masterUserList, JSON.stringify([]));
+    } else {
+      // Sync master users to regular user list
+      try {
+        const users = JSON.parse(masterUsers);
+        localStorage.setItem(this.storageKeys.userList, JSON.stringify(users));
+      } catch (error) {
+        console.error('Error syncing master user list:', error);
+      }
+    }
   }
 
   // Get current logged-in user
@@ -63,6 +81,9 @@ export class UserManager {
     // Add to user list
     const updatedUsers = [...existingUsers, newUser];
     localStorage.setItem(this.storageKeys.userList, JSON.stringify(updatedUsers));
+    
+    // Also save to master user list for persistence across deployments
+    localStorage.setItem(this.storageKeys.masterUserList, JSON.stringify(updatedUsers));
 
     // Initialize empty data for this user
     this.initializeUserData(newUser.id);
@@ -106,6 +127,9 @@ export class UserManager {
 
     users[userIndex] = { ...users[userIndex], ...updatedUserData };
     localStorage.setItem(this.storageKeys.userList, JSON.stringify(users));
+    
+    // Also update master user list
+    localStorage.setItem(this.storageKeys.masterUserList, JSON.stringify(users));
 
     // Update current user if it's the same
     if (this.currentUser && this.currentUser.id === updatedUserData.id) {
@@ -125,6 +149,9 @@ export class UserManager {
     const users = this.getAllUsers();
     const filteredUsers = users.filter(u => u.id !== userId);
     localStorage.setItem(this.storageKeys.userList, JSON.stringify(filteredUsers));
+    
+    // Also update master user list
+    localStorage.setItem(this.storageKeys.masterUserList, JSON.stringify(filteredUsers));
 
     // Remove all user data
     this.clearUserData(userId);
@@ -139,7 +166,7 @@ export class UserManager {
 
   // Generate unique user ID
   generateUserId() {
-    return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 11);
   }
 
   // Initialize empty data storage for new user

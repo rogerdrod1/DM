@@ -102,10 +102,17 @@ const UserAuth = ({ onAuthChange }) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Select User Account
+              Instagram DM Ads Dashboard
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {allUsers.length === 0 && (
+              <div className="text-center space-y-2">
+                <p className="text-muted-foreground">
+                  Welcome! Create your first user account to get started with tracking your Instagram DM advertising performance.
+                </p>
+              </div>
+            )}
             {allUsers.length > 0 && (
               <div className="space-y-2">
                 <Label>Existing Users:</Label>

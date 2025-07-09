@@ -79,7 +79,7 @@ const Dashboard = () => {
         const persistentData = dataManager.loadData();
         
         if (persistentData.dailyData && persistentData.dailyData.length > 0) {
-          // Merge persistent daily data with sample data
+          // Merge persistent daily data with empty data structure
           const mergedData = {
             ...sampleData,
             dailyData: persistentData.dailyData,
@@ -87,7 +87,7 @@ const Dashboard = () => {
           };
           setData(mergedData);
         } else {
-          // Reset to sample data for new user
+          // Start with empty data for new user
           setData(sampleData);
         }
         
@@ -105,7 +105,7 @@ const Dashboard = () => {
       // User logged in - data will load via useEffect
       setLastUpdated(new Date());
     } else {
-      // User logged out - reset to sample data
+      // User logged out - reset to empty data
       setData(sampleData);
     }
   };
