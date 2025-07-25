@@ -360,6 +360,8 @@ export class CSVProcessor {
       reach: Math.max(...dailyData.map(d => d.activeReach).concat([0])),
       meetings: dailyData.reduce((sum, d) => sum + d.meetings, 0),
       closes: dailyData.reduce((sum, d) => sum + d.closes, 0),
+      newCloses: dailyData.reduce((sum, d) => sum + (d.newCloses || 0), 0),
+      recurringCloses: dailyData.reduce((sum, d) => sum + (d.recurringCloses || 0), 0),
       cashCollected: dailyData.reduce((sum, d) => sum + d.cashCollected, 0),
       recurringRevenue: dailyData.reduce((sum, d) => sum + d.recurringRevenue, 0),
       newRevenue: dailyData.reduce((sum, d) => sum + d.newRevenue, 0),
@@ -374,6 +376,8 @@ export class CSVProcessor {
       reach: Math.max(...dailyData.map(d => d.allReach).concat([0])),
       meetings: dailyData.reduce((sum, d) => sum + d.meetings, 0),
       closes: dailyData.reduce((sum, d) => sum + d.closes, 0),
+      newCloses: dailyData.reduce((sum, d) => sum + (d.newCloses || 0), 0),
+      recurringCloses: dailyData.reduce((sum, d) => sum + (d.recurringCloses || 0), 0),
       cashCollected: dailyData.reduce((sum, d) => sum + d.cashCollected, 0),
       recurringRevenue: dailyData.reduce((sum, d) => sum + d.recurringRevenue, 0),
       newRevenue: dailyData.reduce((sum, d) => sum + d.newRevenue, 0),
@@ -384,7 +388,9 @@ export class CSVProcessor {
     [activeMetrics, allMetrics].forEach(metrics => {
       metrics.salesBooked = metrics.closes;
       metrics.costPerDM = metrics.inboundDMs > 0 ? metrics.totalSpend / metrics.inboundDMs : 0;
-      metrics.costPerAcquisition = metrics.closes > 0 ? metrics.totalSpend / metrics.closes : 0;
+      // Use newCloses if available, otherwise fall back to all closes for legacy CSV data
+      metrics.costPerAcquisition = metrics.newCloses > 0 ? metrics.totalSpend / metrics.newCloses : 
+                                   (metrics.closes > 0 ? metrics.totalSpend / metrics.closes : 0);
       metrics.costPerMeeting = metrics.meetings > 0 ? metrics.totalSpend / metrics.meetings : 0;
       metrics.ctr = metrics.impressions > 0 ? (metrics.clicks / metrics.impressions) * 100 : 0;
       metrics.meetingToCloseRate = metrics.meetings > 0 ? (metrics.closes / metrics.meetings) * 100 : 0;

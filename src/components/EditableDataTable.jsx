@@ -37,10 +37,11 @@ const EditableDataTable = ({ data, onDataUpdate, title = "Manual Entry Data" }) 
     };
   }, [editingRows.size]);
 
-  // Filter data to only show entries with manual data (meetings, shows, offersMade, closes, cashCollected, revenue)
+  // Filter data to only show entries with manual data (meetings, shows, offersMade, closes, newCloses, recurringCloses, cashCollected, revenue)
   const manualDataEntries = data.filter(entry => 
     entry.meetings > 0 || entry.shows > 0 || entry.offersMade > 0 || 
-    entry.closes > 0 || entry.cashCollected > 0 || entry.revenue > 0
+    entry.closes > 0 || entry.newCloses > 0 || entry.recurringCloses > 0 || 
+    entry.cashCollected > 0 || entry.revenue > 0
   );
 
   // Sort the data
@@ -77,6 +78,8 @@ const EditableDataTable = ({ data, onDataUpdate, title = "Manual Entry Data" }) 
           shows: entry.shows || 0,
           offersMade: entry.offersMade || 0,
           closes: entry.closes || 0,
+          newCloses: entry.newCloses || 0,
+          recurringCloses: entry.recurringCloses || 0,
           cashCollected: entry.cashCollected || 0,
           revenue: entry.revenue || entry.totalRevenue || 0
         }
@@ -112,6 +115,8 @@ const EditableDataTable = ({ data, onDataUpdate, title = "Manual Entry Data" }) 
       shows: 0,
       offersMade: 0,
       closes: 0,
+      newCloses: 0,
+      recurringCloses: 0,
       cashCollected: 0,
       revenue: 0,
       totalRevenue: 0,
@@ -140,8 +145,17 @@ const EditableDataTable = ({ data, onDataUpdate, title = "Manual Entry Data" }) 
     // Validate the data
     const cashCollected = parseFloat(editedValues.cashCollected) || 0;
     const revenue = parseFloat(editedValues.revenue) || 0;
+    const newCloses = parseInt(editedValues.newCloses) || 0;
+    const recurringCloses = parseInt(editedValues.recurringCloses) || 0;
+    const totalCloses = parseInt(editedValues.closes) || 0;
+    
     if (cashCollected > revenue && revenue > 0) {
       toast.error('Cash collected cannot exceed total revenue');
+      return;
+    }
+    
+    if (totalCloses > 0 && (newCloses + recurringCloses) > 0 && (newCloses + recurringCloses) !== totalCloses) {
+      toast.error('New closes + recurring closes must equal total closes');
       return;
     }
 
@@ -152,6 +166,8 @@ const EditableDataTable = ({ data, onDataUpdate, title = "Manual Entry Data" }) 
       shows: parseInt(editedValues.shows) || 0,
       offersMade: parseInt(editedValues.offersMade) || 0,
       closes: parseInt(editedValues.closes) || 0,
+      newCloses: parseInt(editedValues.newCloses) || 0,
+      recurringCloses: parseInt(editedValues.recurringCloses) || 0,
       cashCollected: parseFloat(editedValues.cashCollected) || 0,
       revenue: parseFloat(editedValues.revenue) || 0,
       totalRevenue: parseFloat(editedValues.revenue) || 0,
@@ -159,6 +175,18 @@ const EditableDataTable = ({ data, onDataUpdate, title = "Manual Entry Data" }) 
       recurringRevenue: 0,
       isEdit: true
     };
+    
+    // Auto-calculate total closes if not specified but new/recurring are
+    if (updateData.closes === 0 && (updateData.newCloses > 0 || updateData.recurringCloses > 0)) {
+      updateData.closes = updateData.newCloses + updateData.recurringCloses;
+    }
+    
+    // Auto-calculate new/recurring if total is specified but breakdown isn't
+    if (updateData.closes > 0 && updateData.newCloses === 0 && updateData.recurringCloses === 0) {
+      // Default to all being new closes unless specified otherwise
+      updateData.newCloses = updateData.closes;
+      updateData.recurringCloses = 0;
+    }
 
     if (onDataUpdate) {
       onDataUpdate(updateData);
@@ -274,7 +302,19 @@ const EditableDataTable = ({ data, onDataUpdate, title = "Manual Entry Data" }) 
                     className="cursor-pointer hover:bg-muted/50 text-center"
                     onClick={() => handleSort('closes')}
                   >
-                    Closes {getSortIcon('closes')}
+                    Total Closes {getSortIcon('closes')}
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/50 text-center"
+                    onClick={() => handleSort('newCloses')}
+                  >
+                    New Clients {getSortIcon('newCloses')}
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/50 text-center"
+                    onClick={() => handleSort('recurringCloses')}
+                  >
+                    Recurring {getSortIcon('recurringCloses')}
                   </TableHead>
                   <TableHead 
                     className="cursor-pointer hover:bg-muted/50 text-center"
@@ -310,6 +350,12 @@ const EditableDataTable = ({ data, onDataUpdate, title = "Manual Entry Data" }) 
                       </TableCell>
                       <TableCell className="text-center">
                         {renderCell(entry, 'closes', isEditing)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {renderCell(entry, 'newCloses', isEditing)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {renderCell(entry, 'recurringCloses', isEditing)}
                       </TableCell>
                       <TableCell className="text-center">
                         {renderCell(entry, 'cashCollected', isEditing)}

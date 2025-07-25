@@ -25,6 +25,7 @@ import UserAuth from './UserAuth';
 import { sampleData } from '../data/sampleData';
 import { dataManager } from '../lib/dataManager';
 import { userManager } from '../lib/userManager';
+import { toast } from 'sonner';
 
 // Helper function to calculate current metrics from daily data
 const calculateMetricsFromDailyData = (dailyData) => {
@@ -36,6 +37,8 @@ const calculateMetricsFromDailyData = (dailyData) => {
     meetings: acc.meetings + (day.meetings || 0),
     offersMade: acc.offersMade + (day.offersMade || 0),
     closes: acc.closes + (day.closes || 0),
+    newCloses: acc.newCloses + (day.newCloses || 0),
+    recurringCloses: acc.recurringCloses + (day.recurringCloses || 0),
     cashCollected: acc.cashCollected + (day.cashCollected || 0),
     revenue: acc.revenue + (day.revenue || day.totalRevenue || 0),
     recurringRevenue: acc.recurringRevenue + (day.recurringRevenue || 0),
@@ -46,7 +49,8 @@ const calculateMetricsFromDailyData = (dailyData) => {
     reach: Math.max(acc.reach, day.reach || day.activeReach || 0)
   }), {
     inboundDMs: 0, totalSpend: 0, meetings: 0, offersMade: 0, closes: 0,
-    cashCollected: 0, revenue: 0, recurringRevenue: 0, newRevenue: 0, totalRevenue: 0,
+    newCloses: 0, recurringCloses: 0, cashCollected: 0, revenue: 0, 
+    recurringRevenue: 0, newRevenue: 0, totalRevenue: 0,
     impressions: 0, clicks: 0, reach: 0
   });
 
@@ -54,10 +58,11 @@ const calculateMetricsFromDailyData = (dailyData) => {
     ...totals,
     salesBooked: totals.closes, // Keep for backward compatibility
     costPerDM: totals.inboundDMs > 0 ? totals.totalSpend / totals.inboundDMs : 0,
-    costPerAcquisition: totals.closes > 0 ? totals.totalSpend / totals.closes : 0,
+    costPerAcquisition: totals.newCloses > 0 ? totals.totalSpend / totals.newCloses : 0,
     costPerMeeting: totals.meetings > 0 ? totals.totalSpend / totals.meetings : 0,
     ctr: totals.impressions > 0 ? parseFloat(((totals.clicks / totals.impressions) * 100).toFixed(2)) : 0,
     meetingToCloseRate: totals.meetings > 0 ? parseFloat(((totals.closes / totals.meetings) * 100).toFixed(2)) : 0,
+    newClientCloseRate: totals.meetings > 0 ? parseFloat(((totals.newCloses / totals.meetings) * 100).toFixed(2)) : 0,
     dmToMeetingRate: totals.inboundDMs > 0 ? parseFloat(((totals.meetings / totals.inboundDMs) * 100).toFixed(2)) : 0
   };
 };
@@ -183,6 +188,8 @@ const Dashboard = () => {
       shows: filteredDailyData.reduce((sum, item) => sum + (item.shows || 0), 0),
       offersMade: filteredDailyData.reduce((sum, item) => sum + (item.offersMade || 0), 0),
       closes: filteredDailyData.reduce((sum, item) => sum + (item.closes || 0), 0),
+      newCloses: filteredDailyData.reduce((sum, item) => sum + (item.newCloses || 0), 0),
+      recurringCloses: filteredDailyData.reduce((sum, item) => sum + (item.recurringCloses || 0), 0),
       cashCollected: filteredDailyData.reduce((sum, item) => sum + (item.cashCollected || 0), 0),
       recurringRevenue: filteredDailyData.reduce((sum, item) => sum + (item.recurringRevenue || 0), 0),
       newRevenue: filteredDailyData.reduce((sum, item) => sum + (item.newRevenue || 0), 0),
@@ -206,6 +213,8 @@ const Dashboard = () => {
       shows: filteredDailyData.reduce((sum, item) => sum + (item.shows || 0), 0),
       offersMade: filteredDailyData.reduce((sum, item) => sum + (item.offersMade || 0), 0),
       closes: filteredDailyData.reduce((sum, item) => sum + (item.closes || 0), 0),
+      newCloses: filteredDailyData.reduce((sum, item) => sum + (item.newCloses || 0), 0),
+      recurringCloses: filteredDailyData.reduce((sum, item) => sum + (item.recurringCloses || 0), 0),
       cashCollected: filteredDailyData.reduce((sum, item) => sum + (item.cashCollected || 0), 0),
       recurringRevenue: filteredDailyData.reduce((sum, item) => sum + (item.recurringRevenue || 0), 0),
       newRevenue: filteredDailyData.reduce((sum, item) => sum + (item.newRevenue || 0), 0),
@@ -219,10 +228,11 @@ const Dashboard = () => {
     [allCampaignsFiltered, activeCampaignsFiltered].forEach(metrics => {
       metrics.salesBooked = metrics.closes; // Keep for backward compatibility
       metrics.costPerDM = metrics.inboundDMs > 0 ? metrics.totalSpend / metrics.inboundDMs : 0;
-      metrics.costPerAcquisition = metrics.closes > 0 ? metrics.totalSpend / metrics.closes : 0;
+      metrics.costPerAcquisition = metrics.newCloses > 0 ? metrics.totalSpend / metrics.newCloses : 0;
       metrics.costPerMeeting = metrics.meetings > 0 ? metrics.totalSpend / metrics.meetings : 0;
       metrics.ctr = metrics.impressions > 0 ? parseFloat(((metrics.clicks / metrics.impressions) * 100).toFixed(2)) : 0;
       metrics.meetingToCloseRate = metrics.meetings > 0 ? parseFloat(((metrics.closes / metrics.meetings) * 100).toFixed(2)) : 0;
+      metrics.newClientCloseRate = metrics.meetings > 0 ? parseFloat(((metrics.newCloses / metrics.meetings) * 100).toFixed(2)) : 0;
       metrics.dmToMeetingRate = metrics.inboundDMs > 0 ? parseFloat(((metrics.meetings / metrics.inboundDMs) * 100).toFixed(2)) : 0;
     });
 
@@ -263,6 +273,8 @@ const Dashboard = () => {
           shows: newEntry.shows,
           offersMade: newEntry.offersMade,
           closes: newEntry.closes,
+          newCloses: newEntry.newCloses,
+          recurringCloses: newEntry.recurringCloses,
           cashCollected: newEntry.cashCollected,
           revenue: newEntry.revenue,
           recurringRevenue: newEntry.recurringRevenue || 0,
@@ -289,6 +301,8 @@ const Dashboard = () => {
           meetings: (existingEntry?.meetings || 0) + (newEntry.meetings || 0),
           offersMade: (existingEntry?.offersMade || 0) + (newEntry.offersMade || 0),
           closes: (existingEntry?.closes || 0) + (newEntry.closes || 0),
+          newCloses: (existingEntry?.newCloses || 0) + (newEntry.newCloses || 0),
+          recurringCloses: (existingEntry?.recurringCloses || 0) + (newEntry.recurringCloses || 0),
           cashCollected: (existingEntry?.cashCollected || 0) + (newEntry.cashCollected || 0),
           revenue: (existingEntry?.revenue || existingEntry?.totalRevenue || 0) + (newEntry.revenue || 0),
           recurringRevenue: newEntry.recurringRevenue || 0,
@@ -382,6 +396,133 @@ const Dashboard = () => {
     dataManager.exportData();
   };
 
+  const handleCSVExport = () => {
+    // Get the filtered data for CSV export
+    const filteredData = getFilteredData();
+    
+    // Prepare CSV headers with all possible columns
+    const headers = [
+      'Date',
+      'Inbound DMs',
+      'Active Inbound DMs', 
+      'All Inbound DMs',
+      'Meetings',
+      'Shows', 
+      'Offers Made',
+      'Total Closes',
+      'New Client Closes',
+      'Recurring Closes',
+      'Cash Collected',
+      'Revenue',
+      'New Revenue',
+      'Recurring Revenue',
+      'Total Revenue',
+      'Ad Spend',
+      'Active Ad Spend',
+      'All Ad Spend',
+      'Impressions',
+      'Active Impressions',
+      'All Impressions',
+      'Clicks',
+      'Active Clicks', 
+      'All Clicks',
+      'Reach',
+      'Active Reach',
+      'All Reach',
+      'CTR (%)',
+      'Cost Per DM',
+      'Cost Per Meeting',
+      'Cost Per Acquisition (New Clients Only)',
+      'DM to Meeting Rate (%)',
+      'Meeting to Close Rate (%)',
+      'New Client Close Rate (%)'
+    ];
+    
+    // Convert daily data to CSV rows
+    const csvRows = [headers.join(',')];
+    
+    filteredData.dailyData.forEach(entry => {
+      // Calculate derived metrics for this entry
+      const inboundDMs = entry.inboundDMs || entry.activeDMs || 0;
+      const spend = entry.spend || entry.activeSpend || 0;
+      const impressions = entry.impressions || entry.activeImpressions || 0;
+      const clicks = entry.clicks || entry.activeClicks || 0;
+      const meetings = entry.meetings || 0;
+      const newCloses = entry.newCloses || 0;
+      const totalCloses = entry.closes || 0;
+      
+      const ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(2) : 0;
+      const costPerDM = inboundDMs > 0 ? (spend / inboundDMs).toFixed(2) : 0;
+      const costPerMeeting = meetings > 0 ? (spend / meetings).toFixed(2) : 0;
+      const costPerAcquisition = newCloses > 0 ? (spend / newCloses).toFixed(2) : 0;
+      const dmToMeetingRate = inboundDMs > 0 ? ((meetings / inboundDMs) * 100).toFixed(2) : 0;
+      const meetingToCloseRate = meetings > 0 ? ((totalCloses / meetings) * 100).toFixed(2) : 0;
+      const newClientCloseRate = meetings > 0 ? ((newCloses / meetings) * 100).toFixed(2) : 0;
+      
+      const row = [
+        entry.date,
+        entry.inboundDMs || 0,
+        entry.activeDMs || 0,
+        entry.allDMs || 0,
+        entry.meetings || 0,
+        entry.shows || 0,
+        entry.offersMade || 0,
+        entry.closes || 0,
+        entry.newCloses || 0,
+        entry.recurringCloses || 0,
+        entry.cashCollected || 0,
+        entry.revenue || 0,
+        entry.newRevenue || 0,
+        entry.recurringRevenue || 0,
+        entry.totalRevenue || 0,
+        entry.spend || 0,
+        entry.activeSpend || 0,
+        entry.allSpend || 0,
+        entry.impressions || 0,
+        entry.activeImpressions || 0,
+        entry.allImpressions || 0,
+        entry.clicks || 0,
+        entry.activeClicks || 0,
+        entry.allClicks || 0,
+        entry.reach || 0,
+        entry.activeReach || 0,
+        entry.allReach || 0,
+        ctr,
+        costPerDM,
+        costPerMeeting,
+        costPerAcquisition,
+        dmToMeetingRate,
+        meetingToCloseRate,
+        newClientCloseRate
+      ];
+      
+      csvRows.push(row.join(','));
+    });
+    
+    // Create and download CSV file
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      
+      // Create filename with date range
+      const startDate = filteredData.dailyData.length > 0 ? filteredData.dailyData[0].date : 'unknown';
+      const endDate = filteredData.dailyData.length > 0 ? filteredData.dailyData[filteredData.dailyData.length - 1].date : 'unknown';
+      link.setAttribute('download', `dm-ads-data-${startDate}-to-${endDate}-${dateRange}.csv`);
+      
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Show success message
+      toast.success(`CSV exported successfully! (${filteredData.dailyData.length} rows)`);
+    }
+  };
+
   const { 
     campaignDailyData
   } = data;
@@ -397,6 +538,7 @@ const Dashboard = () => {
   const dmToMeetingRate = activeMetrics.dmToMeetingRate || 0;
   const meetingToCloseRate = activeMetrics.meetingToCloseRate || 0;
   const overallConversionRate = activeMetrics.inboundDMs > 0 ? parseFloat(((activeMetrics.closes / activeMetrics.inboundDMs) * 100).toFixed(2)) : 0;
+  const newClientConversionRate = activeMetrics.inboundDMs > 0 ? parseFloat(((activeMetrics.newCloses / activeMetrics.inboundDMs) * 100).toFixed(2)) : 0;
 
   // Show authentication screen if no user is logged in
   if (!currentUser) {
@@ -464,6 +606,10 @@ const Dashboard = () => {
             <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="h-4 w-4 mr-1" />
               Backup
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleCSVExport}>
+              <Download className="h-4 w-4 mr-1" />
+              Export CSV
             </Button>
             <input
               type="file"

@@ -10,6 +10,8 @@ export const emptyData = {
     meetings: 0,
     offersMade: 0,
     closes: 0,
+    newCloses: 0,
+    recurringCloses: 0,
     cashCollected: 0,
     recurringRevenue: 0,
     newRevenue: 0,
@@ -21,6 +23,7 @@ export const emptyData = {
     costPerAcquisition: 0,
     costPerMeeting: 0,
     meetingToCloseRate: 0,
+    newClientCloseRate: 0,
     dmToMeetingRate: 0
   },
 

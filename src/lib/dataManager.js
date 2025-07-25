@@ -122,6 +122,8 @@ export class DataManager {
         meetings: existingEntry.meetings || newEntry.meetings || 0,
         offersMade: existingEntry.offersMade || newEntry.offersMade || 0,
         closes: existingEntry.closes || newEntry.closes || 0,
+        newCloses: existingEntry.newCloses || newEntry.newCloses || 0,
+        recurringCloses: existingEntry.recurringCloses || newEntry.recurringCloses || 0,
         cashCollected: existingEntry.cashCollected || newEntry.cashCollected || 0,
         revenue: existingEntry.revenue || newEntry.revenue || 0,
         recurringRevenue: existingEntry.recurringRevenue || newEntry.recurringRevenue || 0,
@@ -211,6 +213,8 @@ export class DataManager {
         mergedEntry.meetings = existingEntry?.meetings || manualEntry?.meetings || 0;
         mergedEntry.offersMade = existingEntry?.offersMade || manualEntry?.offersMade || 0;
         mergedEntry.closes = existingEntry?.closes || manualEntry?.closes || 0;
+        mergedEntry.newCloses = existingEntry?.newCloses || manualEntry?.newCloses || 0;
+        mergedEntry.recurringCloses = existingEntry?.recurringCloses || manualEntry?.recurringCloses || 0;
         mergedEntry.cashCollected = existingEntry?.cashCollected || manualEntry?.cashCollected || 0;
         mergedEntry.revenue = existingEntry?.revenue || manualEntry?.revenue || 0;
         mergedEntry.recurringRevenue = existingEntry?.recurringRevenue || manualEntry?.recurringRevenue || 0;
