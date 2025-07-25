@@ -225,34 +225,32 @@ const DataInput = ({ onDataSubmit }) => {
               <h4 className="text-sm font-medium text-muted-foreground">Revenue Tracking (Optional)</h4>
               
               {/* Client Type Selection */}
-              {parseInt(formData.closes) > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Client Type for Closes</Label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.isNewClient}
-                        onChange={(e) => handleInputChange('isNewClient', e.target.checked)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm">New Clients</span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.isRecurringClient}
-                        onChange={(e) => handleInputChange('isRecurringClient', e.target.checked)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm">Recurring Clients</span>
-                    </label>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Select client type(s) for accurate CPA calculation. New clients affect Cost Per Acquisition.
-                  </p>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Client Type for Closes</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isNewClient}
+                      onChange={(e) => handleInputChange('isNewClient', e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm">New Clients</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isRecurringClient}
+                      onChange={(e) => handleInputChange('isRecurringClient', e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm">Recurring Clients</span>
+                  </label>
                 </div>
-              )}
+                <p className="text-xs text-muted-foreground">
+                  Select client type(s) for accurate CPA calculation. New clients affect Cost Per Acquisition.
+                </p>
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
