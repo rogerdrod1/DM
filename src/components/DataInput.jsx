@@ -13,10 +13,10 @@ const DataInput = ({ onDataSubmit }) => {
     shows: '',
     offersMade: '',
     closes: '',
-    newCloses: '',
-    recurringCloses: '',
     cashCollected: '',
-    revenue: ''
+    revenue: '',
+    isNewClient: true,
+    isRecurringClient: false
   });
   
 
@@ -33,7 +33,7 @@ const DataInput = ({ onDataSubmit }) => {
     
     // Check if at least one field has data
     const hasData = formData.meetings || formData.shows || formData.offersMade || formData.closes || 
-                   formData.newCloses || formData.recurringCloses || formData.cashCollected || formData.revenue;
+                   formData.cashCollected || formData.revenue;
     
     if (!hasData) {
       toast.error('Please fill in at least one field');
@@ -48,13 +48,10 @@ const DataInput = ({ onDataSubmit }) => {
       return;
     }
 
-    // Validate that newCloses + recurringCloses = total closes (if both are specified)
-    const newCloses = parseInt(formData.newCloses) || 0;
-    const recurringCloses = parseInt(formData.recurringCloses) || 0;
+    // Validate that at least one client type is selected if there are closes
     const totalCloses = parseInt(formData.closes) || 0;
-    
-    if (totalCloses > 0 && (newCloses + recurringCloses) > 0 && (newCloses + recurringCloses) !== totalCloses) {
-      toast.error('New closes + recurring closes must equal total closes');
+    if (totalCloses > 0 && !formData.isNewClient && !formData.isRecurringClient) {
+      toast.error('Please select if closes are new clients, recurring clients, or both');
       return;
     }
 
@@ -64,21 +61,31 @@ const DataInput = ({ onDataSubmit }) => {
       shows: parseInt(formData.shows) || 0,
       offersMade: parseInt(formData.offersMade) || 0,
       closes: parseInt(formData.closes) || 0,
-      newCloses: parseInt(formData.newCloses) || 0,
-      recurringCloses: parseInt(formData.recurringCloses) || 0,
       cashCollected: parseFloat(formData.cashCollected) || 0,
       revenue: parseFloat(formData.revenue) || 0
     };
     
-    // Auto-calculate total closes if not specified but new/recurring are
-    if (newData.closes === 0 && (newData.newCloses > 0 || newData.recurringCloses > 0)) {
-      newData.closes = newData.newCloses + newData.recurringCloses;
-    }
-    
-    // Auto-calculate new/recurring if total is specified but breakdown isn't
-    if (newData.closes > 0 && newData.newCloses === 0 && newData.recurringCloses === 0) {
-      // Default to all being new closes unless specified otherwise
-      newData.newCloses = newData.closes;
+    // Calculate new vs recurring closes based on checkboxes
+    if (newData.closes > 0) {
+      if (formData.isNewClient && formData.isRecurringClient) {
+        // Both selected - split evenly (user can edit later if needed)
+        newData.newCloses = Math.ceil(newData.closes / 2);
+        newData.recurringCloses = Math.floor(newData.closes / 2);
+      } else if (formData.isNewClient) {
+        // Only new clients
+        newData.newCloses = newData.closes;
+        newData.recurringCloses = 0;
+      } else if (formData.isRecurringClient) {
+        // Only recurring clients
+        newData.newCloses = 0;
+        newData.recurringCloses = newData.closes;
+      } else {
+        // Default to new clients if no selection
+        newData.newCloses = newData.closes;
+        newData.recurringCloses = 0;
+      }
+    } else {
+      newData.newCloses = 0;
       newData.recurringCloses = 0;
     }
 
@@ -115,10 +122,10 @@ const DataInput = ({ onDataSubmit }) => {
       shows: '',
       offersMade: '',
       closes: '',
-      newCloses: '',
-      recurringCloses: '',
       cashCollected: '',
-      revenue: ''
+      revenue: '',
+      isNewClient: true,
+      isRecurringClient: false
     });
   };
 
@@ -199,13 +206,13 @@ const DataInput = ({ onDataSubmit }) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="closes">
-                    Total Closes
+                    Closes
                   </Label>
                   <Input
                     id="closes"
                     type="number"
                     min="0"
-                    placeholder="# of total closes"
+                    placeholder="# of closes"
                     value={formData.closes}
                     onChange={(e) => handleInputChange('closes', e.target.value)}
                   />
@@ -213,49 +220,40 @@ const DataInput = ({ onDataSubmit }) => {
               </div>
             </div>
 
-            {/* Close Type Breakdown */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">Close Type Breakdown (Optional)</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newCloses">
-                    New Client Closes
-                  </Label>
-                  <Input
-                    id="newCloses"
-                    type="number"
-                    min="0"
-                    placeholder="# of new clients"
-                    value={formData.newCloses}
-                    onChange={(e) => handleInputChange('newCloses', e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    First-time customers (used for CPA calculation)
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="recurringCloses">
-                    Recurring Client Closes
-                  </Label>
-                  <Input
-                    id="recurringCloses"
-                    type="number"
-                    min="0"
-                    placeholder="# of existing clients"
-                    value={formData.recurringCloses}
-                    onChange={(e) => handleInputChange('recurringCloses', e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Repeat customers or upsells
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Revenue Fields */}
+            {/* Revenue Tracking */}
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Revenue Tracking (Optional)</h4>
+              
+              {/* Client Type Selection */}
+              {parseInt(formData.closes) > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Client Type for Closes</Label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isNewClient}
+                        onChange={(e) => handleInputChange('isNewClient', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm">New Clients</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isRecurringClient}
+                        onChange={(e) => handleInputChange('isRecurringClient', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm">Recurring Clients</span>
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Select client type(s) for accurate CPA calculation. New clients affect Cost Per Acquisition.
+                  </p>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="revenue">
@@ -313,9 +311,8 @@ const DataInput = ({ onDataSubmit }) => {
             <li>• <strong>Meetings:</strong> Number of meetings/calls you had</li>
             <li>• <strong>Shows:</strong> Number of people who actually showed up to meetings</li>
             <li>• <strong>Offers Made:</strong> Number of formal offers/proposals presented</li>
-            <li>• <strong>Total Closes:</strong> Total number of deals closed/signed</li>
-            <li>• <strong>New Client Closes:</strong> First-time customers (affects CPA calculation)</li>
-            <li>• <strong>Recurring Client Closes:</strong> Repeat customers or upsells</li>
+            <li>• <strong>Closes:</strong> Number of deals closed/signed</li>
+            <li>• <strong>Client Type Checkboxes:</strong> Select if closes are new or recurring clients (affects CPA)</li>
             <li>• <strong>Total Revenue:</strong> Full value of all deals (e.g., $3,000 for a $3k deal)</li>
             <li>• <strong>Cash Collected:</strong> Actual money received (can be partial)</li>
           </ul>
